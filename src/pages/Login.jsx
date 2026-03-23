@@ -106,8 +106,8 @@ export default function Login() {
           <div className="mt-8 pt-6 border-t border-slate-200">
             <p className="text-xs text-slate-500 mb-3">Demo Credentials:</p>
             <div className="space-y-2 text-xs text-slate-600">
-              <p><span className="font-semibold">Email:</span> test@neurobloom.com</p>
-              <p><span className="font-semibold">Password:</span> test123456</p>
+              <p><span className="font-semibold">Email:</span>oqulix@gmail.com</p>
+              <p><span className="font-semibold">Password:</span>oqulix@123</p>
             </div>
             <p className="text-xs text-slate-400 mt-3">Or create a new account to test signup</p>
           </div>
