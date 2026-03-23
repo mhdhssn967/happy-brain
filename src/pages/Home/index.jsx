@@ -4,6 +4,7 @@ import AddPatientModal from "./components/AddPatientModal"
 import { useEffect, useState } from "react"
 import { useAuth } from "../../context/authContext"
 import ActivePatientSelector from "../../components/ActivePatientSelector"
+import { useNavigate } from "react-router-dom"
 
 export default function Home() {
   const [floatingElements, setFloatingElements] = useState([])
@@ -20,7 +21,7 @@ export default function Home() {
     {
       title: "Quick Math",
       description: "Improve mathematical skills.",
-      gameId: "quick-math",
+      gameId: "math-game",
     },
     {
       title: "Sequence Recall",
@@ -33,7 +34,7 @@ export default function Home() {
       gameId: "atm-pin-recall",
     },
   ]
-
+  const navigate = useNavigate()
   // Generate floating game elements
   useEffect(() => {
     const elements = Array.from({ length: 4 }).map((_, i) => ({
@@ -53,6 +54,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
+
       {/* Subtle Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50" />
@@ -107,7 +109,12 @@ export default function Home() {
             </div>
           </div>
         </header>
-
+        <button style={{width:'100%',marginTop:'10px'}}
+          onClick={() => navigate("/dashboard")}
+          className="px-4 p-4 py-2.5e bg-indigo-100 font-bold rounded-lg transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+        >
+          📊 Analytics
+        </button>
         {/* Main Content */}
         <main className="max-w-6xl mx-auto px-6 py-8">
           {/* Active Patient Selector */}
@@ -134,6 +141,7 @@ export default function Home() {
               />
             ))}
           </div>
+
 
           {/* Patients List (Optional - shows added patients) */}
           {patients.length > 0 && (

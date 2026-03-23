@@ -4,7 +4,7 @@ import GameLauncher from "../pages/GameLauncher"
 import Login from "../pages/Login"
 import AnalyticsPanel from "../pages/AnalyticsPanel"
 import LoadingScreen from "../components/ui/LoadingScreen"
-import { useAuth } from "../context/AuthContext"
+import { useAuth } from "../context/authContext"
 
 // Protected Route Component
 function ProtectedRoute({ element }) {

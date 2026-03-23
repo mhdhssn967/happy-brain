@@ -1,59 +1,92 @@
-import { useEffect, useState, useRef } from "react";
-import { generateMathProblem, isAnswerCorrect } from "./engine";
-import * as config from "./config";
-import { SoundManager } from "../../engine/SoundManager";
+import { useEffect, useState, useRef } from "react"
+import { generateMathProblem } from "./engine"
+import * as config from "./config"
+import { SoundManager } from "../../engine/SoundManager"
 
-export const useMathGame = () => {
-  const [level, setLevel] = useState(1);
-  const [problem, setProblem] = useState(null);
-  const [userInput, setUserInput] = useState("");
-  const [score, setScore] = useState(0);
-  const [lives, setLives] = useState(config.LIVES);
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [operationType, setOperationType] = useState("addition");
-  const [feedback, setFeedback] = useState(null); // "correct" | "wrong" | null
-  const [showCorrectAnimation, setShowCorrectAnimation] = useState(false);
-  const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
+export const useMathGame = (gameTimeMs, gameStarted) => {
+  const [level, setLevel] = useState(1)
+  const [problem, setProblem] = useState(null)
+  const [userInput, setUserInput] = useState("")
+  const [score, setScore] = useState(0)
+  const [timeLeft, setTimeLeft] = useState(gameTimeMs / 1000) // in seconds
+  const [isGameOver, setIsGameOver] = useState(false)
+  const [operationType, setOperationType] = useState("addition")
+  const [feedback, setFeedback] = useState(null) // "correct" | "wrong" | null
+  const [showCorrectAnimation, setShowCorrectAnimation] = useState(false)
+  const [consecutiveCorrect, setConsecutiveCorrect] = useState(0)
 
   const [analytics, setAnalytics] = useState({
+    totalRounds: 0,
+    correctRounds: 0,
+    wrongRounds: 0,
     totalAttempts: 0,
     correctAttempts: 0,
     wrongAttempts: 0,
     reactionTimes: [],
     averageReactionTime: 0,
-    levelsCompleted: 0,
-  });
+    accuracy: 0,
+  })
 
-  const problemStartRef = useRef(Date.now());
-  const soundManager = SoundManager.getInstance();
+  const problemStartRef = useRef(Date.now())
+  const soundManager = SoundManager.getInstance()
+  const gameStartTimeRef = useRef(Date.now())
+  const timerIntervalRef = useRef(null)
 
   // Generate new problem when level changes
   useEffect(() => {
-    generateNewProblem();
-  }, [level]);
+    if (gameStarted) {
+      generateNewProblem()
+    }
+  }, [level, gameStarted])
+
+  // Timer effect - countdown from gameTimeMs
+  useEffect(() => {
+    if (!gameStarted) return
+
+    gameStartTimeRef.current = Date.now()
+    setTimeLeft(Math.ceil(gameTimeMs / 1000))
+
+    timerIntervalRef.current = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        const newTime = prevTime - 0.1
+        if (newTime <= 0) {
+          clearInterval(timerIntervalRef.current)
+          setIsGameOver(true)
+          return 0
+        }
+        return newTime
+      })
+    }, 100)
+
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current)
+      }
+    }
+  }, [gameStarted, gameTimeMs])
 
   const generateNewProblem = () => {
-    const operation = config.getOperationType(level);
-    setOperationType(operation);
+    const operation = config.getOperationType(level)
+    setOperationType(operation)
 
-    const newProblem = generateMathProblem(level, operation);
-    setProblem(newProblem);
-    setUserInput("");
-    setFeedback(null);
-    setShowCorrectAnimation(false);
-    problemStartRef.current = Date.now();
-  };
+    const newProblem = generateMathProblem(level, operation)
+    setProblem(newProblem)
+    setUserInput("")
+    setFeedback(null)
+    setShowCorrectAnimation(false)
+    problemStartRef.current = Date.now()
+  }
 
   const handleNumberClick = (num) => {
-    if (isGameOver) return;
+    if (isGameOver) return
 
-    const newInput = userInput + num;
-    setUserInput(newInput);
+    const newInput = userInput + num
+    setUserInput(newInput)
 
     // Check answer as user types (instant validation)
     if (problem) {
-      const expectedAnswer = String(problem.answer);
-      
+      const expectedAnswer = String(problem.answer)
+
       // Check if the number of digits matches
       if (newInput.length <= expectedAnswer.length) {
         // Check if current input matches the start of the answer
@@ -61,105 +94,110 @@ export const useMathGame = () => {
           // Still on track
           if (newInput === expectedAnswer) {
             // Correct! Answer is complete
-            handleCorrect(newInput);
+            handleCorrect(newInput)
           }
         } else {
           // Wrong digit entered - instant fail
-          handleWrong(newInput);
+          handleWrong(newInput)
         }
       } else if (newInput.length > expectedAnswer.length) {
         // Too many digits - fail
-        handleWrong(newInput);
+        handleWrong(newInput)
       }
     }
-  };
+  }
 
   const handleCorrect = (input) => {
-    soundManager.playSound("correct");
-    setScore(s => s + 10);
-    setFeedback("correct");
-    setShowCorrectAnimation(true);
-    setConsecutiveCorrect(c => c + 1);
+    soundManager.playSound("correct")
+    setScore((s) => s + 10)
+    setFeedback("correct")
+    setShowCorrectAnimation(true)
+    setConsecutiveCorrect((c) => c + 1)
 
-    const reactionTime = Date.now() - problemStartRef.current;
+    const reactionTime = Date.now() - problemStartRef.current
 
-    setAnalytics(prev => ({
-      ...prev,
-      totalAttempts: prev.totalAttempts + 1,
-      correctAttempts: prev.correctAttempts + 1,
-      reactionTimes: [...prev.reactionTimes, reactionTime],
-      averageReactionTime: calculateAverageReactionTime([
-        ...prev.reactionTimes,
-        reactionTime,
-      ]),
-    }));
+    setAnalytics((prev) => {
+      const newReactionTimes = [...prev.reactionTimes, reactionTime]
+      const newCorrectAttempts = prev.correctAttempts + 1
+      const newTotalAttempts = prev.totalAttempts + 1
+      const newAccuracy = Math.round(
+        (newCorrectAttempts / newTotalAttempts) * 100
+      )
+
+      return {
+        ...prev,
+        totalRounds: prev.totalRounds + 1,
+        correctRounds: prev.correctRounds + 1,
+        totalAttempts: newTotalAttempts,
+        correctAttempts: newCorrectAttempts,
+        reactionTimes: newReactionTimes,
+        averageReactionTime: calculateAverageReactionTime(newReactionTimes),
+        accuracy: newAccuracy,
+      }
+    })
 
     // Auto-move to next level after animation
     setTimeout(() => {
-      setLevel(l => l + 1);
-    }, 1200);
-  };
+      setLevel((l) => l + 1)
+    }, 1200)
+  }
 
   const handleWrong = (input) => {
-    soundManager.playSound("wrong");
-    setScore(s => Math.max(0, s - 5));
-    setFeedback("wrong");
-    setConsecutiveCorrect(0);
+    soundManager.playSound("wrong")
+    setScore((s) => Math.max(0, s - 5))
+    setFeedback("wrong")
+    setConsecutiveCorrect(0)
 
-    const reactionTime = Date.now() - problemStartRef.current;
+    const reactionTime = Date.now() - problemStartRef.current
 
-    setAnalytics(prev => ({
-      ...prev,
-      totalAttempts: prev.totalAttempts + 1,
-      wrongAttempts: prev.wrongAttempts + 1,
-      reactionTimes: [...prev.reactionTimes, reactionTime],
-      averageReactionTime: calculateAverageReactionTime([
-        ...prev.reactionTimes,
-        reactionTime,
-      ]),
-    }));
+    setAnalytics((prev) => {
+      const newReactionTimes = [...prev.reactionTimes, reactionTime]
+      const newWrongAttempts = prev.wrongAttempts + 1
+      const newTotalAttempts = prev.totalAttempts + 1
+      const newCorrectAttempts = prev.correctAttempts
+      const newAccuracy = newTotalAttempts > 0 
+        ? Math.round((newCorrectAttempts / newTotalAttempts) * 100)
+        : 0
 
-    setLives(currentLives => {
-      const newLives = currentLives - 1;
-      if (newLives <= 0) {
-        setIsGameOver(true);
-        setAnalytics(prev => ({
-          ...prev,
-          levelsCompleted: level,
-        }));
+      return {
+        ...prev,
+        totalRounds: prev.totalRounds + 1,
+        wrongRounds: prev.wrongRounds + 1,
+        totalAttempts: newTotalAttempts,
+        wrongAttempts: newWrongAttempts,
+        reactionTimes: newReactionTimes,
+        averageReactionTime: calculateAverageReactionTime(newReactionTimes),
+        accuracy: newAccuracy,
       }
-      return newLives;
-    });
+    })
 
     // Reset and show new problem after delay
     setTimeout(() => {
-      if (lives - 1 > 0) {
-        generateNewProblem();
-      }
-    }, 800);
-  };
+      generateNewProblem()
+    }, 800)
+  }
 
   const handleClear = () => {
-    setUserInput("");
-    setFeedback(null);
-  };
+    setUserInput("")
+    setFeedback(null)
+  }
 
   const handleBackspace = () => {
-    setUserInput(userInput.slice(0, -1));
-    setFeedback(null);
-  };
+    setUserInput(userInput.slice(0, -1))
+    setFeedback(null)
+  }
 
   const calculateAverageReactionTime = (times) => {
-    if (times.length === 0) return 0;
-    return Math.round(times.reduce((a, b) => a + b, 0) / times.length);
-  };
+    if (times.length === 0) return 0
+    return Math.round(times.reduce((a, b) => a + b, 0) / times.length)
+  }
 
   return {
     level,
     problem,
     userInput,
     score,
-    lives,
+    timeLeft,
     isGameOver,
     operationType,
     feedback,
@@ -169,5 +207,5 @@ export const useMathGame = () => {
     handleClear,
     handleBackspace,
     analytics,
-  };
-};
+  }
+}
