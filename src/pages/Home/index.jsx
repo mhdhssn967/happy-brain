@@ -1,4 +1,3 @@
-
 import GameCard from "./components/GameCard"
 import AddPatientModal from "./components/AddPatientModal"
 import { useEffect, useState } from "react"
@@ -6,193 +5,314 @@ import { useAuth } from "../../context/authContext"
 import ActivePatientSelector from "../../components/ActivePatientSelector"
 import { useNavigate } from "react-router-dom"
 
+const GAMES = [
+  { title: "Memory Tiles",    description: "Visual memory & recall",  gameId: "memory-tiles",    icon: "◈", accent: "#00e5ff", tag: "MEMORY"   },
+  { title: "Quick Math",      description: "Speed arithmetic",        gameId: "math-game",       icon: "∑", accent: "#ff6b6b", tag: "FOCUS"    },
+  { title: "Sequence Recall", description: "Pattern & order memory",  gameId: "sequence-recall", icon: "◎", accent: "#a78bfa", tag: "SEQUENCE" },
+  { title: "ATM Pin Recall",  description: "Numeric memory training", gameId: "atm-pin-recall",  icon: "⬡", accent: "#34d399", tag: "RECALL"   },
+]
+
+const PARTICLES = Array.from({ length: 14 }).map((_, i) => ({
+  id: i,
+  x: Math.random() * 100,
+  y: Math.random() * 100,
+  size: 1 + Math.random() * 2,
+  duration: 8 + Math.random() * 16,
+  delay: Math.random() * 10,
+  opacity: 0.06 + Math.random() * 0.14,
+}))
+
 export default function Home() {
-  const [floatingElements, setFloatingElements] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [patients, setPatients] = useState([])
+  const [mounted, setMounted] = useState(false)
   const { user } = useAuth()
-
-  const games = [
-    {
-      title: "Memory Tiles",
-      description: "Boost visual memory and recall skills.",
-      gameId: "memory-tiles",
-    },
-    {
-      title: "Quick Math",
-      description: "Improve mathematical skills.",
-      gameId: "math-game",
-    },
-    {
-      title: "Sequence Recall",
-      description: "Improve sequencing skills",
-      gameId: "sequence-recall",
-    },
-    {
-      title: "ATM Pin Recall",
-      description: "Improve memory",
-      gameId: "atm-pin-recall",
-    },
-  ]
   const navigate = useNavigate()
-  // Generate floating game elements
-  useEffect(() => {
-    const elements = Array.from({ length: 4 }).map((_, i) => ({
-      id: i,
-      emoji: ["🧠", "🎯", "⚡", "✨"][i],
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      delay: Math.random() * 5,
-      duration: 20 + Math.random() * 10,
-    }))
-    setFloatingElements(elements)
-  }, [])
+
+  useEffect(() => { setTimeout(() => setMounted(true), 60) }, [])
 
   const handlePatientAdded = (newPatient) => {
     setPatients((prev) => [...prev, newPatient])
   }
 
+  const doctorName = user?.email?.split("@")[0] ?? "Doctor"
+
   return (
-    <div className="min-h-screen bg-white relative overflow-hidden">
+    <div style={{
+      minHeight: "100vh",
+      background: "#080c14",
+      color: "#e8eaf0",
+      fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
+      position: "relative",
+      overflowX: "hidden",
+    }}>
 
-      {/* Subtle Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50" />
-
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-200/15 rounded-full blur-3xl" />
-      </div>
-
-      {/* Floating Game Elements */}
-      <div className="fixed inset-0 pointer-events-none">
-        {floatingElements.map((el) => (
-          <div
-            key={el.id}
-            className="absolute text-4xl opacity-5 animate-pulse"
-            style={{
-              left: `${el.left}%`,
-              top: `${el.top}%`,
-              animation: `drift ${el.duration}s ease-in-out ${el.delay}s infinite`,
-            }}
-          >
-            {el.emoji}
-          </div>
+      {/* ── Ambient background ── */}
+      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "radial-gradient(ellipse 80% 60% at 20% 10%, #0d1f3c 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, #0a1628 0%, transparent 60%), #080c14",
+        }} />
+        <div style={{
+          position: "absolute", top: "8%", left: "60%",
+          width: 320, height: 320, borderRadius: "50%",
+          background: "radial-gradient(circle, #00e5ff08 0%, transparent 70%)",
+          filter: "blur(40px)",
+        }} />
+        <div style={{
+          position: "absolute", bottom: "15%", left: "5%",
+          width: 240, height: 240, borderRadius: "50%",
+          background: "radial-gradient(circle, #a78bfa0a 0%, transparent 70%)",
+          filter: "blur(40px)",
+        }} />
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+        }} />
+        {PARTICLES.map(p => (
+          <div key={p.id} style={{
+            position: "absolute",
+            left: `${p.x}%`, top: `${p.y}%`,
+            width: p.size, height: p.size,
+            borderRadius: "50%", background: "#00e5ff",
+            opacity: p.opacity,
+            animation: `floatPt ${p.duration}s ease-in-out ${p.delay}s infinite alternate`,
+          }} />
         ))}
       </div>
 
-      {/* Content */}
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="border-b border-slate-100 backdrop-blur-sm bg-white/80 sticky top-0 z-20">
-          <div className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">🧠</span>
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">NeuroBloom</h1>
-                <p className="text-xs text-slate-500 mt-0.5">Cognitive Training</p>
+      {/* ══════════════════════════════
+          NAVBAR — logo left, doctor right
+      ══════════════════════════════ */}
+      <header style={{
+        position: "sticky", top: 0, zIndex: 50,
+        borderBottom: "1px solid rgba(255,255,255,0.05)",
+        background: "rgba(8,12,20,0.92)",
+        backdropFilter: "blur(18px)",
+        WebkitBackdropFilter: "blur(18px)",
+      }}>
+        <div style={{
+          maxWidth: 640, margin: "0 auto", padding: "0 16px",
+          height: 54, display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}>
+          {/* Logo */}
+          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 9,
+              background: "linear-gradient(135deg, #00e5ff22, #a78bfa22)",
+              border: "1px solid rgba(0,229,255,0.25)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 15,
+            }}>⬡</div>
+            <div>
+              <div style={{ fontSize: "0.9rem", fontWeight: 800, letterSpacing: "-0.02em", color: "#fff", lineHeight: 1 }}>
+                Happy Brain
               </div>
-            </div>
-
-            <div className="flex items-center gap-4 flex-col-reverse">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all active:scale-95"
-              >
-                <span>+</span>
-                <span>Add Patient</span>
-              </button>
-
-              <div className="text-right">
-                <p className="text-sm font-semibold text-slate-900">{user?.email}</p>
-                <p className="text-xs text-slate-500">Doctor</p>
+              <div style={{ fontSize: "0.52rem", letterSpacing: "0.16em", color: "#00e5ff66", textTransform: "uppercase",marginTop:'5px' }}>
+                Cognitive Suite
               </div>
             </div>
           </div>
-        </header>
-        <button style={{width:'100%',marginTop:'10px'}}
-          onClick={() => navigate("/dashboard")}
-          className="px-4 p-4 py-2.5e bg-indigo-100 font-bold rounded-lg transition-all transform hover:scale-105 active:scale-95 shadow-lg"
-        >
-          📊 Analytics
-        </button>
-        {/* Main Content */}
-        <main className="max-w-6xl mx-auto px-6 py-8">
-          {/* Active Patient Selector */}
-          <ActivePatientSelector />
 
-          {/* Hero */}
-          <div className="mb-12">
-            <h2 className="text-4xl font-bold text-slate-900 mb-2">
-              Cognitive Games
-            </h2>
-            <p className="text-lg text-slate-600">
-              Start a game session for the selected patient.
-            </p>
-          </div>
-
-          {/* Games Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {games.map((game) => (
-              <GameCard
-                key={game.gameId}
-                title={game.title}
-                description={game.description}
-                gameId={game.gameId}
-              />
-            ))}
-          </div>
-
-
-          {/* Patients List (Optional - shows added patients) */}
-          {patients.length > 0 && (
-            <div className="mt-16">
-              <h3 className="text-2xl font-bold text-slate-900 mb-6">Your Patients</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {patients.map((patient) => (
-                  <div
-                    key={patient.id}
-                    className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-bold text-slate-900">{patient.name}</p>
-                        <p className="text-sm text-slate-600">ID: {patient.patientId}</p>
-                        <p className="text-sm text-slate-600">Age: {patient.age}, {patient.gender}</p>
-                        <p className="text-sm text-slate-600">Condition: {patient.condition}</p>
-                      </div>
-                      <span className="text-2xl">👤</span>
-                    </div>
-                  </div>
-                ))}
+          {/* Doctor pill */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#e2e8f0", lineHeight: 1 }}>
+                {doctorName}
+              </div>
+              <div style={{ fontSize: "0.52rem", color: "#475569", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                Doctor
               </div>
             </div>
-          )}
-        </main>
+            <div style={{
+              width: 30, height: 30, borderRadius: "50%",
+              background: "linear-gradient(135deg, #00e5ff22, #a78bfa33)",
+              border: "1px solid rgba(0,229,255,0.25)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "0.8rem", fontWeight: 800, color: "#00e5ff",
+            }}>
+              {doctorName[0].toUpperCase()}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* ══════════════════════════════
+          ACTION BAR — directly below navbar
+      ══════════════════════════════ */}
+      <div style={{
+        position: "sticky", top: 54, zIndex: 40,
+        background: "rgba(8,12,20,0.88)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
+        borderBottom: "1px solid rgba(255,255,255,0.04)",
+      }}>
+        <div style={{
+          maxWidth: 640, margin: "0 auto",
+          padding: "10px 16px",
+          display: "flex", gap: 8,
+        }}>
+          <ActionBtn icon="▦"  label="Analytics"   onClick={() => navigate("/dashboard")}  accent="#94a3b8" />
+          <ActionBtn icon="◉"  label="Patients"     onClick={() => {}}                      accent="#a78bfa" />
+          <ActionBtn icon="+"  label="Add Patient"  onClick={() => setIsModalOpen(true)}    accent="#00e5ff" highlight />
+        </div>
       </div>
 
-      {/* Add Patient Modal */}
+      {/* ── Main ── */}
+      <main style={{
+        maxWidth: 640, margin: "0 auto",
+        padding: "24px 16px 96px",
+        position: "relative", zIndex: 10,
+      }}>
+
+        {/* Active Patient Selector */}
+        <div style={{
+          marginBottom: 28,
+          opacity: mounted ? 1 : 0,
+          transform: mounted ? "translateY(0)" : "translateY(12px)",
+          transition: "all 0.45s cubic-bezier(.4,0,.2,1)",
+        }}>
+          <ActivePatientSelector />
+        </div>
+
+        {/* Section heading */}
+        <div style={{
+          marginBottom: 18,
+          opacity: mounted ? 1 : 0,
+          transform: mounted ? "translateY(0)" : "translateY(14px)",
+          transition: "all 0.5s cubic-bezier(.4,0,.2,1) 0.07s",
+        }}>
+          <div style={{
+            fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.2em",
+            color: "#00e5ff66", textTransform: "uppercase", marginBottom: 6,
+          }}>
+            — Select a module
+          </div>
+          <h2 style={{
+            fontSize: "clamp(1.45rem, 5.5vw, 1.9rem)",
+            fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.2,
+            margin: 0, color: "#fff",
+          }}>
+            Choose Your{" "}
+            <span style={{
+              background: "linear-gradient(90deg, #00e5ff, #a78bfa)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+            }}>
+              Training Game
+            </span>
+          </h2>
+        </div>
+
+        {/* Games grid — 2 col mobile */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 12,
+          opacity: mounted ? 1 : 0,
+          transform: mounted ? "translateY(0)" : "translateY(16px)",
+          transition: "all 0.55s cubic-bezier(.4,0,.2,1) 0.14s",
+        }}>
+          {GAMES.map((game) => (
+            <GameCard
+              key={game.gameId}
+              title={game.title}
+              description={game.description}
+              gameId={game.gameId}
+            />
+          ))}
+        </div>
+
+        {/* Patients list */}
+        {patients.length > 0 && (
+          <div style={{ marginTop: 40 }}>
+            <div style={{
+              fontSize: "0.62rem", letterSpacing: "0.18em", color: "#475569",
+              textTransform: "uppercase", fontWeight: 700, marginBottom: 12,
+            }}>
+              Recently Added
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {patients.map((patient) => (
+                <div key={patient.id} style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  borderRadius: 12, padding: "12px 14px",
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                }}>
+                  <div>
+                    <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#e2e8f0" }}>{patient.name}</div>
+                    <div style={{ fontSize: "0.7rem", color: "#475569", marginTop: 2 }}>
+                      ID {patient.patientId} · Age {patient.age}
+                    </div>
+                  </div>
+                  <div style={{
+                    fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em",
+                    color: "#a78bfa88", textTransform: "uppercase",
+                    background: "rgba(167,139,250,0.08)",
+                    border: "1px solid rgba(167,139,250,0.15)",
+                    borderRadius: 6, padding: "3px 7px",
+                  }}>
+                    {patient.condition}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+
       <AddPatientModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onPatientAdded={handlePatientAdded}
       />
 
-      <style jsx>{`
-        @keyframes drift {
-          0%, 100% {
-            transform: translateY(0px) translateX(0px);
-          }
-          25% {
-            transform: translateY(-30px) translateX(20px);
-          }
-          50% {
-            transform: translateY(-60px) translateX(-20px);
-          }
-          75% {
-            transform: translateY(-30px) translateX(20px);
-          }
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+        @keyframes floatPt {
+          from { transform: translateY(0px) translateX(0px); }
+          to   { transform: translateY(-40px) translateX(16px); }
         }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
       `}</style>
     </div>
+  )
+}
+
+/* ── Action Button ── */
+function ActionBtn({ icon, label, onClick, accent, highlight }) {
+  const [pressed, setPressed] = useState(false)
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setPressed(true)}
+      onMouseLeave={() => setPressed(false)}
+      onTouchStart={() => setPressed(true)}
+      onTouchEnd={() => { setPressed(false); onClick?.() }}
+      style={{
+        flex: highlight ? "1.3" : "1",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+        padding: "9px 8px", borderRadius: 10,
+        border: `1px solid ${pressed ? accent + "55" : highlight ? accent + "30" : "rgba(255,255,255,0.07)"}`,
+        background: pressed
+          ? `${accent}1a`
+          : highlight ? `${accent}0d` : "rgba(255,255,255,0.03)",
+        color: pressed ? accent : highlight ? accent + "cc" : "#64748b",
+        fontSize: "0.73rem", fontWeight: 700,
+        cursor: "pointer", letterSpacing: "0.01em",
+        transition: "all 0.16s ease",
+        whiteSpace: "nowrap",
+        boxShadow: pressed && highlight ? `0 0 18px ${accent}20` : "none",
+        transform: pressed ? "scale(0.97)" : "scale(1)",
+      }}
+    >
+      <span style={{ fontSize: "0.78rem" }}>{icon}</span>
+      {label}
+    </button>
   )
 }
