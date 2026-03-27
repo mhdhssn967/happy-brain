@@ -42,7 +42,7 @@ export default function Login() {
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="text-center mb-8">
             <div className="text-5xl mb-4">🧠</div>
-            <h1 className="text-3xl font-bold text-slate-900">NeuroBloom</h1>
+            <h1 className="text-3xl font-bold text-slate-900">Happy Brain</h1>
             <p className="text-slate-600 mt-2">Cognitive Rehabilitation</p>
           </div>
 
