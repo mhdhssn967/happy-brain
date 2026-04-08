@@ -6,6 +6,7 @@ const GAME_META = {
   "math-game":      { accent: "#ff6b6b", tag: "FOCUS",    symbol: "∑" },
   "sequence-recall":{ accent: "#a78bfa", tag: "SEQUENCE", symbol: "◎" },
   "atm-pin-recall": { accent: "#34d399", tag: "RECALL",   symbol: "⬡" },
+  "color-tap-game": { accent: "#34d399", tag: "TAP",   symbol: "⬡" },
 }
 
 export default function GameCard({ title, description, gameId }) {

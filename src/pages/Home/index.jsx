@@ -10,6 +10,7 @@ const GAMES = [
   { title: "Quick Math",      description: "Speed arithmetic",        gameId: "math-game",       icon: "∑", accent: "#ff6b6b", tag: "FOCUS"    },
   { title: "Sequence Recall", description: "Pattern & order memory",  gameId: "sequence-recall", icon: "◎", accent: "#a78bfa", tag: "SEQUENCE" },
   { title: "ATM Pin Recall",  description: "Numeric memory training", gameId: "atm-pin-recall",  icon: "⬡", accent: "#34d399", tag: "RECALL"   },
+   { title: "Color Tap",      description: "Color Maps",              gameId: "color-tap-game",  icon: "⬡", accent: "#ae33344", tag: "COLORS"   },
 ]
 
 const PARTICLES = Array.from({ length: 14 }).map((_, i) => ({
